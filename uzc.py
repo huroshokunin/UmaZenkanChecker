@@ -4,6 +4,8 @@ import tkinter.ttk as ttk
 import json
 
 # Define a class for the app
+
+
 class TreeviewApp(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
@@ -18,6 +20,8 @@ class TreeviewApp(tk.Frame):
 
         # Create frames to hold the checkboxes and treeview
         self.frames_grade, self.frame_treeview = self.create_frame()
+
+        self.create_menubar()
 
         # Initialize an empty list to hold checked items
         self.checked_items = []
@@ -42,6 +46,8 @@ class TreeviewApp(tk.Frame):
             list_grade.append(data_g2)
             list_grade.append(data_g3)
         return list_grade
+
+
 
     # Function to create frames for holding checkboxes and treeview
     def create_frame(self):
@@ -74,6 +80,23 @@ class TreeviewApp(tk.Frame):
         frame_treeview.grid(row=2, column=0, columnspan=3, sticky=tk.NS)
 
         return frames_grade, frame_treeview
+
+    def create_menubar(self):
+        def save_file():
+            pass
+
+        def read_file():
+            pass
+        
+        menubar = tk.Menu(self.master)
+        self.master.config(menu=menubar)
+
+        setting = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label='ファイル', menu=setting)
+        setting.add_command(label='保存', command=save_file)
+        setting.add_command(label='読み込み', command=read_file)
+        setting.add_separator()
+        setting.add_command(label='終了', command=quit)
 
     # Function to create tabs for each grade and add checkboxes for races
     def create_grade_tab(self, frame, list_races):
