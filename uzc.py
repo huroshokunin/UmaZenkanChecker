@@ -7,118 +7,92 @@ class TreeviewApp(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
         self.master.title("TREEVIEW TEST")
-        self.master.geometry("1000x500")
+        self.master.geometry("1050x500")
 
-        data = self.load_data_from_file()
-        items = self.get_grade_items(data)
+        list_grade = self.load_data()
+        frames_grade, frame_treeview = self.create_frame()
 
-        grade_frames = self.create_grade_frames()
-        tab_frames = []
+        for i, _ in enumerate(list_grade):
+            self.create_grade_tab(frames_grade[i], list_grade[i])
 
-        for num, frame in enumerate(grade_frames):
-            tab_frame = self.create_tab_frame(frame, items[num])
-            tab_frames.append(tab_frame)
+        label = tk.Label(frame_treeview, text='TEXT')
+        label.grid(sticky=tk.EW)
 
-        tv_frame = self.create_treeview_frame()
-        tree = self.create_treeview(tv_frame, items[0][0])
+    def load_data(self):
+        list_grade = []
+        with open('TrophyRoom.json', encoding='utf-8') as f:
+            data = json.load(f)
+            data_g1 = data['G1']
+            data_g2 = data['G2']
+            data_g3 = data['G3']
+            list_grade.append(data_g1)
+            list_grade.append(data_g2)
+            list_grade.append(data_g3)
+        return list_grade
 
-    def load_data_from_file(self):
-        with open('./uma/venvUmaZenkanChecker/TrophyRoom.json', 'r', encoding='utf-8') as f:
-            return json.load(f)
+    def create_frame(self):
+        # Create Grade frames
+        # frame_g1, frame_g2, frame_g3 is in frame_grade
+        frames_grade = []
+        frame_grade = tk.Frame(self.master, bg='blue')
+        frame_grade.grid(row=0, columnspan=3, sticky='nwe')
 
-    def get_grade_items(self, data):
-        return [data['G1'], data['G2'], data['G3']]
+        frame_g1 = tk.Frame(frame_grade)
+        frame_g2 = tk.Frame(frame_grade)
+        frame_g3 = tk.Frame(frame_grade)
+        frame_g1.grid(row=1, column=0, padx=5, pady=5, sticky=tk.NW)
+        frame_g2.grid(row=1, column=1, padx=5, pady=5, sticky=tk.NW)
+        frame_g3.grid(row=1, column=2, padx=5, pady=5, sticky=tk.NW)
+        frames_grade.append(frame_g1)
+        frames_grade.append(frame_g2)
+        frames_grade.append(frame_g3)
 
-    def create_grade_frames(self):
-        grade_frame = tk.Frame(self.master)
-        grade_frame.grid(row=1, column=1, sticky=tk.NW)
+        # Create Grade labels
+        label_g1 = tk.Label(frame_g1, text='G1', font=("bold"), bd=5)
+        label_g2 = tk.Label(frame_g2, text='G2', font=("bold"), bd=5)
+        label_g3 = tk.Label(frame_g3, text='G3', font=("bold"), bd=5)
+        label_g1.grid(sticky=tk.NW)
+        label_g2.grid(sticky=tk.NW)
+        label_g3.grid(sticky=tk.NW)
 
-        G1_label = tk.Label(grade_frame, text='G1', font="bold")
-        G2_label = tk.Label(grade_frame, text='G2', font="bold")
-        G3_label = tk.Label(grade_frame, text='G3', font="bold")
+        # Create Treeview frames
+        frame_treeview = tk.Frame(self.master, bg='gray')
+        frame_treeview.grid(row=2, columnspan=3, sticky=tk.EW)
 
-        G1_frame = tk.Frame(grade_frame)
-        G2_frame = tk.Frame(grade_frame)
-        G3_frame = tk.Frame(grade_frame)
+        return frames_grade, frame_treeview
 
-        G1_label.grid(row=0, column=0, sticky=tk.W)
-        G2_label.grid(row=0, column=1, sticky=tk.W)
-        G3_label.grid(row=0, column=2, sticky=tk.W)
-
-        G1_frame.grid(row=1, column=0, sticky=tk.NW)
-        G2_frame.grid(row=1, column=1, sticky=tk.NW)
-        G3_frame.grid(row=1, column=2, sticky=tk.NW)
-
-        return [G1_frame, G2_frame, G3_frame]
-
-    def create_tab_frame(self, parent_frame, race_list):
-        checkbox_vars = []
+    def create_grade_tab(self, frame, list_races):
+        # Calculate the number of tabs
         checkbox_max = 15
-        cols = 3
-        tab_count = (len(race_list) // checkbox_max) + \
-            (1 if len(race_list) % checkbox_max != 0 else 0)
-        notebook = ttk.Notebook(parent_frame)
+        tab_count = len(list_races) // checkbox_max
+        if len(list_races) % checkbox_max != 0:
+            tab_count += 1
 
-        for i in range(tab_count):
-            tab = tk.Frame(notebook)
-            notebook.add(tab, text=f'page{i+1}')
-            start_index = i * checkbox_max
-            end_index = min((i + 1) * checkbox_max, len(race_list))
-            tab_race_list = race_list[start_index:end_index]
+        # 15races in list_checkboxes
+        list_checkboxes = [list_races[i:i + checkbox_max]
+                           for i in range(0, len(list_races), checkbox_max)]
 
-            for index, race_value in enumerate(tab_race_list):
-                checkbox_var = tk.BooleanVar()
-                checkbox_vars.append(checkbox_var)
-                checkbox = tk.Checkbutton(
-                    tab, text=race_value['Name'], variable=checkbox_var)
-                row = index // cols
-                column = index % cols
-                checkbox.grid(row=row + 1, column=column, sticky=tk.W)
+        notebook = ttk.Notebook(frame)
+        list_tab = []
+        rows = 0
+        columns = 0
+        for tab_num in range(tab_count):
+            # Create tabs frame
+            tab = tk.Frame(notebook, bg='green')
+            list_tab.append(tab)
 
-        notebook.grid(row=2, column=0, sticky=tk.W)
-        return tab_count, checkbox_vars
+            notebook.add(list_tab[tab_num], text=f'Page{tab_num+1}')
+        for tab_num, list_checkbox in enumerate(list_checkboxes):
+            for race_num, checkbox in enumerate(list_checkbox):
+                if (race_num % 3 == 0):
+                    rows += 1
+                    columns = 0
+                checkbox_race = tk.Checkbutton(
+                    list_tab[tab_num], text=checkbox['Name'])
+                checkbox_race.grid(row=rows, column=columns, sticky=tk.NW)
 
-    def create_treeview_frame(self):
-        tv_frame = tk.Frame(self.master, width=500)
-        tv_frame.grid(row=2, column=1, pady=5, sticky=tk.NSEW)
-        return tv_frame
-
-    def create_treeview(self, tv_frame, item):
-        tree = ttk.Treeview(tv_frame, show='headings')
-        keys = list(item.keys())
-        tree['columns'] = keys
-        tree.grid(row=2, column=0, sticky=tk.EW)
-
-        tree['columns'] = (
-            'Phase',
-            'Schedule',
-            'Name',
-            'Grade',
-            'Place',
-            'CourseType',
-            'Distance',
-            'DistanceType',
-            'Handed')
-        tree.column('Phase', width=50, minwidth=50)
-        tree.column('Schedule', width=60, minwidth=60)
-        tree.column('Name', width=150, minwidth=50)
-        tree.column('Grade', width=40, minwidth=20)
-        tree.column('Place', width=50, minwidth=20)
-        tree.column('CourseType', width=40, minwidth=20)
-        tree.column('Distance', width=100, minwidth=20)
-        tree.column('DistanceType', width=60, minwidth=20)
-        tree.column('Handed', width=30, minwidth=20)
-
-        tree.heading('Phase', text='フェーズ')
-        tree.heading('Schedule', text='開催時期')
-        tree.heading('Name', text='レース名')
-        tree.heading('Grade', text='グレード')
-        tree.heading('Place', text='開催地')
-        tree.heading('CourseType', text='コース')
-        tree.heading('Distance', text='距離')
-        tree.heading('DistanceType', text='距離区分')
-        tree.heading('Handed', text='回り')
-        return tree
+                columns += 1
+        notebook.grid(sticky=tk.NW)
 
 
 if __name__ == "__main__":
