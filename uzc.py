@@ -4,8 +4,6 @@ import tkinter.ttk as ttk
 import json
 
 # Define a class for the app
-
-
 class TreeviewApp(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
