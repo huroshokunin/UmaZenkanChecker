@@ -1,26 +1,38 @@
+# Import necessary modules
 import tkinter as tk
 import tkinter.ttk as ttk
 import json
+
+# Define a class for the app
 
 
 class TreeviewApp(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
+
+        # Set window title, size and make it non-resizable
         self.master.title("Umamusume Zenkan Checker")
         self.master.geometry("1070x420")
         self.master.resizable(width=False, height=False)
 
+        # Load data from JSON file
         self.list_grade = self.load_data()
+
+        # Create frames to hold the checkboxes and treeview
         self.frames_grade, self.frame_treeview = self.create_frame()
 
-        self.checked_items = []  # チェックされた要素を保持するリスト
+        # Initialize an empty list to hold checked items
+        self.checked_items = []
 
+        # Create tabs for each grade and add checkboxes for races
         for i, _ in enumerate(self.list_grade):
             self.create_grade_tab(self.frames_grade[i], self.list_grade[i])
 
+        # Create treeview and scrollbar
         self.create_treeview(self.frame_treeview)
         self.create_scrollbar(self.frame_treeview)
 
+    # Function to load data from JSON file
     def load_data(self):
         list_grade = []
         with open('TrophyRoom.json', encoding='utf-8') as f:
@@ -33,6 +45,7 @@ class TreeviewApp(tk.Frame):
             list_grade.append(data_g3)
         return list_grade
 
+    # Function to create frames for holding checkboxes and treeview
     def create_frame(self):
         # Create Grade frames
         # frame_g1, frame_g2, frame_g3 is in frame_grade
@@ -64,6 +77,7 @@ class TreeviewApp(tk.Frame):
 
         return frames_grade, frame_treeview
 
+    # Function to create tabs for each grade and add checkboxes for races
     def create_grade_tab(self, frame, list_races):
         # Calculate the number of tabs
         checkbox_max = 15
@@ -100,6 +114,7 @@ class TreeviewApp(tk.Frame):
                 columns += 1
         notebook.grid()
 
+    # Function to create treeview
     def create_treeview(self, frame):
         # Create treeview
         self.tree = ttk.Treeview(frame, show='headings')
@@ -114,6 +129,7 @@ class TreeviewApp(tk.Frame):
             'DistanceType',
             'Handed')
 
+        # Set column widths and headings
         self.tree.column('Phase', width=100, minwidth=50)
         self.tree.column('Schedule', width=70, minwidth=60)
         self.tree.column('Name', minwidth=50)
@@ -136,6 +152,7 @@ class TreeviewApp(tk.Frame):
 
         self.tree.grid(sticky=tk.NS)
 
+    # Function to create scrollbar
     def create_scrollbar(self, frame):
         # Create scrollbar
         scrollbar = ttk.Scrollbar(
@@ -143,6 +160,7 @@ class TreeviewApp(tk.Frame):
         scrollbar.grid(row=0, column=1, sticky=tk.NS)
         self.tree.configure(yscrollcommand=scrollbar.set)
 
+    # Function to handle checkbox clicks and update the treeview
     def handle_checkbox(self, checkbox):
         if checkbox in self.checked_items:
             self.checked_items.remove(checkbox)
@@ -150,6 +168,7 @@ class TreeviewApp(tk.Frame):
             self.checked_items.append(checkbox)
         self.update_treeview()
 
+    # Function to update the treeview based on checked items
     def update_treeview(self):
         self.tree.delete(*self.tree.get_children())
         for item in self.checked_items:
@@ -169,6 +188,7 @@ class TreeviewApp(tk.Frame):
                 ))
 
 
+# Run the app
 if __name__ == "__main__":
     root = tk.Tk()
     app = TreeviewApp(master=root)
