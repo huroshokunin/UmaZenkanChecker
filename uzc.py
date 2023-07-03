@@ -6,17 +6,20 @@ import json
 class TreeviewApp(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
-        self.master.title("TREEVIEW TEST")
-        self.master.geometry("1050x500")
+        self.master.title("Umamusume Zenkan Checker")
+        self.master.geometry("1070x420")
+        self.master.resizable(width=False, height=False)
 
-        list_grade = self.load_data()
-        frames_grade, frame_treeview = self.create_frame()
+        self.list_grade = self.load_data()
+        self.frames_grade, self.frame_treeview = self.create_frame()
 
-        for i, _ in enumerate(list_grade):
-            self.create_grade_tab(frames_grade[i], list_grade[i])
+        self.checked_items = []  # チェックされた要素を保持するリスト
 
-        label = tk.Label(frame_treeview, text='TEXT')
-        label.grid(sticky=tk.EW)
+        for i, _ in enumerate(self.list_grade):
+            self.create_grade_tab(self.frames_grade[i], self.list_grade[i])
+
+        self.create_treeview(self.frame_treeview)
+        self.create_scrollbar(self.frame_treeview)
 
     def load_data(self):
         list_grade = []
@@ -34,15 +37,15 @@ class TreeviewApp(tk.Frame):
         # Create Grade frames
         # frame_g1, frame_g2, frame_g3 is in frame_grade
         frames_grade = []
-        frame_grade = tk.Frame(self.master, bg='blue')
-        frame_grade.grid(row=0, columnspan=3, sticky='nwe')
+        frame_grade = tk.Frame(self.master)
+        frame_grade.grid(row=0, columnspan=3, sticky=tk.NSEW)
 
         frame_g1 = tk.Frame(frame_grade)
         frame_g2 = tk.Frame(frame_grade)
         frame_g3 = tk.Frame(frame_grade)
-        frame_g1.grid(row=1, column=0, padx=5, pady=5, sticky=tk.NW)
-        frame_g2.grid(row=1, column=1, padx=5, pady=5, sticky=tk.NW)
-        frame_g3.grid(row=1, column=2, padx=5, pady=5, sticky=tk.NW)
+        frame_g1.grid(row=1, column=0, padx=5, sticky=tk.NW)
+        frame_g2.grid(row=1, column=1, padx=5, sticky=tk.NW)
+        frame_g3.grid(row=1, column=2, padx=5, sticky=tk.NW)
         frames_grade.append(frame_g1)
         frames_grade.append(frame_g2)
         frames_grade.append(frame_g3)
@@ -56,8 +59,8 @@ class TreeviewApp(tk.Frame):
         label_g3.grid(sticky=tk.NW)
 
         # Create Treeview frames
-        frame_treeview = tk.Frame(self.master, bg='gray')
-        frame_treeview.grid(row=2, columnspan=3, sticky=tk.EW)
+        frame_treeview = tk.Frame(self.master)
+        frame_treeview.grid(row=2, column=0, columnspan=3, sticky=tk.NS)
 
         return frames_grade, frame_treeview
 
@@ -78,7 +81,7 @@ class TreeviewApp(tk.Frame):
         columns = 0
         for tab_num in range(tab_count):
             # Create tabs frame
-            tab = tk.Frame(notebook, bg='green')
+            tab = tk.Frame(notebook)
             list_tab.append(tab)
 
             notebook.add(list_tab[tab_num], text=f'Page{tab_num+1}')
@@ -87,12 +90,83 @@ class TreeviewApp(tk.Frame):
                 if (race_num % 3 == 0):
                     rows += 1
                     columns = 0
+
                 checkbox_race = tk.Checkbutton(
-                    list_tab[tab_num], text=checkbox['Name'])
+                    list_tab[tab_num],
+                    text=checkbox['Name'],
+                    command=lambda checkbox=checkbox: self.handle_checkbox(checkbox))
                 checkbox_race.grid(row=rows, column=columns, sticky=tk.NW)
 
                 columns += 1
-        notebook.grid(sticky=tk.NW)
+        notebook.grid()
+
+    def create_treeview(self, frame):
+        # Create treeview
+        self.tree = ttk.Treeview(frame, show='headings')
+        self.tree['columns'] = (
+            'Phase',
+            'Schedule',
+            'Name',
+            'Grade',
+            'Place',
+            'CourseType',
+            'Distance',
+            'DistanceType',
+            'Handed')
+
+        self.tree.column('Phase', width=100, minwidth=50)
+        self.tree.column('Schedule', width=70, minwidth=60)
+        self.tree.column('Name', minwidth=50)
+        self.tree.column('Grade', width=40, minwidth=20)
+        self.tree.column('Place', minwidth=20)
+        self.tree.column('CourseType', width=40, minwidth=20)
+        self.tree.column('Distance', width=70, minwidth=20)
+        self.tree.column('DistanceType', width=60, minwidth=20)
+        self.tree.column('Handed', width=30, minwidth=20)
+
+        self.tree.heading('Phase', text='フェーズ')
+        self.tree.heading('Schedule', text='開催時期')
+        self.tree.heading('Name', text='レース名')
+        self.tree.heading('Grade', text='グレード')
+        self.tree.heading('Place', text='開催地')
+        self.tree.heading('CourseType', text='コース')
+        self.tree.heading('Distance', text='距離')
+        self.tree.heading('DistanceType', text='距離区分')
+        self.tree.heading('Handed', text='回り')
+
+        self.tree.grid(sticky=tk.NS)
+
+    def create_scrollbar(self, frame):
+        # Create scrollbar
+        scrollbar = ttk.Scrollbar(
+            frame, orient='vertical', command=self.tree.yview)
+        scrollbar.grid(row=0, column=1, sticky=tk.NS)
+        self.tree.configure(yscrollcommand=scrollbar.set)
+
+    def handle_checkbox(self, checkbox):
+        if checkbox in self.checked_items:
+            self.checked_items.remove(checkbox)
+        else:
+            self.checked_items.append(checkbox)
+        self.update_treeview()
+
+    def update_treeview(self):
+        self.tree.delete(*self.tree.get_children())
+        for item in self.checked_items:
+            self.tree.insert(
+                '',
+                'end',
+                values=(
+                    item['Phase'],
+                    item['Schedule'],
+                    item['Name'],
+                    item['Grade'],
+                    item['Place'],
+                    item['CourseType'],
+                    item['Distance'],
+                    item['DistanceType'],
+                    item['Handed']
+                ))
 
 
 if __name__ == "__main__":
