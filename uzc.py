@@ -5,6 +5,8 @@ import tkinter.ttk as ttk
 import json
 
 # Define a class for the app
+
+
 class TreeviewApp(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
@@ -92,7 +94,7 @@ class TreeviewApp(tk.Frame):
 
         notebook = ttk.Notebook(frame)
         list_tab = []
-        list_var = []
+        self.list_var = []
 
         list_var_num = 0
         rows = 0
@@ -111,14 +113,14 @@ class TreeviewApp(tk.Frame):
 
                 checkbox_var = tk.BooleanVar()
                 checkbox_var.set(False)
-                list_var.append(checkbox_var)
+                self.list_var.append(checkbox_var)
 
                 checkbox_race = tk.Checkbutton(
                     list_tab[tab_num],
                     text=race['Name'],
-                    variable=list_var[list_var_num],
+                    variable=self.list_var[list_var_num],
                     command=lambda checkbox=race,
-                    var=list_var[list_var_num]: self.handle_checkbox(
+                    var=self.list_var[list_var_num]: self.handle_checkbox(
                         checkbox,
                         var))
                 checkbox_race.grid(row=rows, column=columns, sticky=tk.NW)
@@ -173,8 +175,10 @@ class TreeviewApp(tk.Frame):
         scrollbar.grid(row=0, column=1, sticky=tk.NS)
         self.tree.configure(yscrollcommand=scrollbar.set)
 
-    def toggle_checkbutton(self):
-        pass
+    def toggle_checkbutton(self, list_checkbutton):
+        for var in list_checkbutton:
+            var.set(True)
+        
 
     # Function to handle checkbox clicks and update the treeview
     def handle_checkbox(self, checkbox, var):
@@ -232,8 +236,11 @@ class TreeviewApp(tk.Frame):
             initialdir="./",
             defaultextension=".json"
         )
+        for file in save_filename:
+            print(file)
+
         with open(save_filename, 'w', encoding='utf-8') as f:
-            json.dump(self.checked_items, f, ensure_ascii=False)
+            json.dump(self.checked_items, f, indent=2, ensure_ascii=False)
 
     # Function to read checked items from JSON file and update checkboxes
     def read_file(self):
@@ -244,8 +251,9 @@ class TreeviewApp(tk.Frame):
         )
         with open(read_filename, 'r', encoding='utf-8') as f:
             self.checked_items = json.load(f)
+            self.toggle_checkbutton(self.checked_items)
             self.update_treeview()
-            self.toggle_checkbutton()
+
 
 
 # Run the app
