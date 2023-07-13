@@ -2,15 +2,19 @@
 
 ウマ娘プリティーダービーでの収集要素であるトロフィーの収集数を管理するだけのアプリケーションです。
 
-## How to Use
+## 使い方
 
-Umamusume Zenkan Checker.zip をダウンロード後、適当な場所に解答してください。
+Umamusume Zenkan Checker.zip をダウンロード後、適当な場所に解答してください。<br>
 恐らくフォルダ内は
 <br>
-　./<br>
+　 /<br>
 　 ├ uzc.exe<br>
 　 └ data/<br>
 　　　 └ TrophyRoom.json<br>
+
+という構成になっています。uzc.exeを起動してください。<br>
+TrophyRoom.jsonはデータファイルなので上書きしないように注意してください。
+
 
 ## Change log
 
