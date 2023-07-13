@@ -1,7 +1,7 @@
 # Import necessary modules
 import tkinter as tk
-from tkinter import filedialog
 import tkinter.ttk as ttk
+from tkinter import filedialog
 import json
 
 # Define a class for the app
@@ -16,9 +16,6 @@ class TreeviewApp(tk.Frame):
         self.master.geometry("1070x420")
         self.master.resizable(width=False, height=False)
 
-        # Initialize an empty list to hold checked items
-        self.checked_items = []
-
         # Load data from JSON file
         self.list_grade = self.load_data()
 
@@ -26,6 +23,10 @@ class TreeviewApp(tk.Frame):
         self.frames_grade, self.frame_treeview = self.create_frame()
 
         self.create_menubar()
+
+        # Initialize an empty list to hold checked items
+        self.checked_items = []
+        self.checkboxes = {}
 
         # Create tabs for each grade and add checkboxes for races
         for i, _ in enumerate(self.list_grade):
@@ -49,6 +50,7 @@ class TreeviewApp(tk.Frame):
         return list_grade
 
     # Function to create frames for holding checkboxes and treeview
+
     def create_frame(self):
         # Create Grade frames
         # frame_g1, frame_g2, frame_g3 is in frame_grade
@@ -67,9 +69,9 @@ class TreeviewApp(tk.Frame):
         frames_grade.append(frame_g3)
 
         # Create Grade labels
-        label_g1 = tk.Label(frame_g1, text='G1', font=("bold"), bd=5)
-        label_g2 = tk.Label(frame_g2, text='G2', font=("bold"), bd=5)
-        label_g3 = tk.Label(frame_g3, text='G3', font=("bold"), bd=5)
+        label_g1 = tk.Label(frame_g1, text='G1', font=("", 12, "bold"), bd=5)
+        label_g2 = tk.Label(frame_g2, text='G2', font=("", 12, "bold"), bd=5)
+        label_g3 = tk.Label(frame_g3, text='G3', font=("", 12, "bold"), bd=5)
         label_g1.grid(sticky=tk.NW)
         label_g2.grid(sticky=tk.NW)
         label_g3.grid(sticky=tk.NW)
@@ -79,6 +81,45 @@ class TreeviewApp(tk.Frame):
         frame_treeview.grid(row=2, column=0, columnspan=3, sticky=tk.NS)
 
         return frames_grade, frame_treeview
+
+    def create_menubar(self):
+        def save_file():
+            filename = filedialog.asksaveasfilename(
+                title="名前を付けて保存", filetypes=[
+                    ("Json files", "*.json")], initialdir="./", defaultextension=".json")
+            if filename:
+                with open(filename, 'w', encoding='utf-8') as outfile:
+                    json.dump(
+                        self.checked_items,
+                        outfile,
+                        indent=2,
+                        ensure_ascii=False)
+
+        def read_file():
+            filename = filedialog.askopenfilename(
+                title="ファイルを開く", filetypes=[
+                    ("Json files", "*.json")], initialdir="./")
+            if filename:
+                with open(filename, 'r', encoding='utf-8') as infile:
+                    items = json.load(infile)
+                    # Clear all checkboxes
+                    for checkbox in self.checkboxes.values():
+                        checkbox.deselect()
+                    # Check the loaded items
+                    for item in items:
+                        if item['Name'] in self.checkboxes:
+                            self.checkboxes[item['Name']].select()
+                            self.handle_checkbox(item)
+
+        menubar = tk.Menu(self.master)
+        self.master.config(menu=menubar)
+
+        setting = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label='ファイル', menu=setting)
+        setting.add_command(label='保存', command=save_file)
+        setting.add_command(label='読み込み', command=read_file)
+        setting.add_separator()
+        setting.add_command(label='終了', command=quit)
 
     # Function to create tabs for each grade and add checkboxes for races
     def create_grade_tab(self, frame, list_races):
@@ -94,39 +135,30 @@ class TreeviewApp(tk.Frame):
 
         notebook = ttk.Notebook(frame)
         list_tab = []
-        self.list_var = []
-
-        list_var_num = 0
         rows = 0
         columns = 0
         for tab_num in range(tab_count):
             # Create tabs frame
             tab = tk.Frame(notebook)
             list_tab.append(tab)
-            notebook.add(list_tab[tab_num], text=f'Page{tab_num+1}')
 
+            notebook.add(list_tab[tab_num], text=f'Page{tab_num+1}')
         for tab_num, list_checkbox in enumerate(list_checkboxes):
-            for race_num, race in enumerate(list_checkbox):
+            for race_num, checkbox in enumerate(list_checkbox):
                 if (race_num % 3 == 0):
                     rows += 1
                     columns = 0
 
-                checkbox_var = tk.BooleanVar()
-                checkbox_var.set(False)
-                self.list_var.append(checkbox_var)
-
+                # Create a Checkbutton object and store it
+                # in the checkboxes dictionary
                 checkbox_race = tk.Checkbutton(
                     list_tab[tab_num],
-                    text=race['Name'],
-                    variable=self.list_var[list_var_num],
-                    command=lambda checkbox=race,
-                    var=self.list_var[list_var_num]: self.handle_checkbox(
-                        checkbox,
-                        var))
+                    text=checkbox['Name'],
+                    command=lambda checkbox=checkbox: self.handle_checkbox(checkbox))
                 checkbox_race.grid(row=rows, column=columns, sticky=tk.NW)
+                self.checkboxes[checkbox['Name']] = checkbox_race
 
                 columns += 1
-                list_var_num += 1
         notebook.grid()
 
     # Function to create treeview
@@ -175,28 +207,15 @@ class TreeviewApp(tk.Frame):
         scrollbar.grid(row=0, column=1, sticky=tk.NS)
         self.tree.configure(yscrollcommand=scrollbar.set)
 
-    def toggle_checkbutton(self, list_checkbutton):
-        for var in list_checkbutton:
-            var.set(True)
-        
-
     # Function to handle checkbox clicks and update the treeview
-    def handle_checkbox(self, checkbox, var):
-        for frame in self.frames_grade:
-            for child in frame.winfo_children():
-                if isinstance(
-                        child,
-                        tk.Checkbutton) and child["Name"] == checkbox["Name"]:
-                    child.select()
+    def handle_checkbox(self, checkbox):
         if checkbox in self.checked_items:
             self.checked_items.remove(checkbox)
         else:
             self.checked_items.append(checkbox)
         self.update_treeview()
-        print(var)
 
     # Function to update the treeview based on checked items
-
     def update_treeview(self):
         self.tree.delete(*self.tree.get_children())
         for item in self.checked_items:
@@ -214,46 +233,6 @@ class TreeviewApp(tk.Frame):
                     item['DistanceType'],
                     item['Handed']
                 ))
-
-    def create_menubar(self):
-        menubar = tk.Menu(self.master)
-        self.master.config(menu=menubar)
-
-        setting = tk.Menu(menubar, tearoff=0)
-        menubar.add_cascade(label='ファイル', menu=setting)
-
-        setting.add_command(label='保存', command=self.save_file)
-        setting.add_command(label='読み込み', command=self.read_file)
-
-        setting.add_separator()
-        setting.add_command(label='終了', command=quit)
-
-    # Function to save checked items into JSON file
-    def save_file(self):
-        save_filename = filedialog.asksaveasfilename(
-            title='名前を付けて保存',
-            filetypes=[("jsonファイル", ".json")],
-            initialdir="./",
-            defaultextension=".json"
-        )
-        for file in save_filename:
-            print(file)
-
-        with open(save_filename, 'w', encoding='utf-8') as f:
-            json.dump(self.checked_items, f, indent=2, ensure_ascii=False)
-
-    # Function to read checked items from JSON file and update checkboxes
-    def read_file(self):
-        read_filename = filedialog.askopenfilename(
-            title="個別ファイルを開く",
-            filetypes=[("jsonファイル", ".json")],
-            initialdir="./"
-        )
-        with open(read_filename, 'r', encoding='utf-8') as f:
-            self.checked_items = json.load(f)
-            self.toggle_checkbutton(self.checked_items)
-            self.update_treeview()
-
 
 
 # Run the app
