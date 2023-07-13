@@ -143,8 +143,7 @@ class TreeviewApp(tk.Frame):
             'Handed'
         )
         for column, width in zip(
-            self.tree['columns'], [
-                100, 70, 50, 40, 20, 40, 70, 60, 30]):
+                self.tree['columns'], [100, 70, 50, 40, 20, 40, 70, 60, 30]):
             self.tree.column(column, width=width, minwidth=50)
         for column, text in zip(
                 self.tree['columns'], [
