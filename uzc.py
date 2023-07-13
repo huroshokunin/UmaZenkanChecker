@@ -22,7 +22,7 @@ class TreeviewApp(tk.Frame):
         self.create_scrollbar(self.frame_treeview)
 
     def load_race_data_from_json(self):
-        with open('TrophyRoom.json', encoding='utf-8') as f:
+        with open('./data/TrophyRoom.json', encoding='utf-8') as f:
             data = json.load(f)
         return [data[grade] for grade in ['G1', 'G2', 'G3']]
 
@@ -164,7 +164,6 @@ class TreeviewApp(tk.Frame):
             text='距離',
             command=self.sort_by_distance
         )
-
         self.tree.grid(sticky=tk.NS)
 
     def create_scrollbar(self, frame):
