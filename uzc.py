@@ -43,9 +43,12 @@ class TreeviewApp(tk.Frame):
         tk.Label(
             frame,
             text=f'G{i+1}',
-            font=("", 12, "bold"),
-            bd=5).grid(
-            sticky=tk.NW)
+            font=(
+                "",
+                12,
+                "bold"),
+            bd=5
+        ).grid(sticky=tk.NW)
         return frame
 
     def create_treeview_frame(self):
@@ -76,7 +79,8 @@ class TreeviewApp(tk.Frame):
                     self.checked_items,
                     outfile,
                     indent=2,
-                    ensure_ascii=False)
+                    ensure_ascii=False
+                )
 
     def read_file(self):
         filename = filedialog.askopenfilename(
