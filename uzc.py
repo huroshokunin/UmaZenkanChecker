@@ -123,6 +123,12 @@ class TreeviewApp(tk.Frame):
         checkbox.grid(row=row, column=column, sticky=tk.NW)
         self.checkboxes[race['Name']] = checkbox
 
+    def sort_by_distance(self, descending=False):
+        self.checked_items.sort(
+            key=lambda item: item['Distance'],
+            reverse=descending)
+        self.update_treeview()
+
     def create_treeview(self, frame):
         self.tree = ttk.Treeview(frame, show='headings')
         self.tree['columns'] = (
@@ -141,9 +147,25 @@ class TreeviewApp(tk.Frame):
                 100, 70, 50, 40, 20, 40, 70, 60, 30]):
             self.tree.column(column, width=width, minwidth=50)
         for column, text in zip(
-            self.tree['columns'], [
-                'フェーズ', '開催時期', 'レース名', 'グレード', '開催地', 'コース', '距離', '距離区分', '回り']):
+                self.tree['columns'], [
+                    'フェーズ',
+                    '開催時期',
+                    'レース名',
+                    'グレード',
+                    '開催地',
+                    'コース',
+                    '距離',
+                    '距離区分',
+                    '回り'
+                ]):
             self.tree.heading(column, text=text)
+
+        self.tree.heading(
+            'Distance',
+            text='距離',
+            command=self.sort_by_distance
+        )
+
         self.tree.grid(sticky=tk.NS)
 
     def create_scrollbar(self, frame):
