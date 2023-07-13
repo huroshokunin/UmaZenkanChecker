@@ -2,6 +2,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import filedialog
 import json
+import os
 
 
 class TreeviewApp(tk.Frame):
@@ -61,6 +62,7 @@ class TreeviewApp(tk.Frame):
         self.master.config(menu=menubar)
         setting = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label='ファイル', menu=setting)
+
         setting.add_command(label='保存', command=self.save_file)
         setting.add_command(label='読み込み', command=self.read_file)
         setting.add_separator()
@@ -82,6 +84,10 @@ class TreeviewApp(tk.Frame):
                     ensure_ascii=False
                 )
 
+            # ここで保存したファイル名をタイトルに追加する
+            name = os.path.basename(filename)
+            self.master.title(f"Umamusume Zenkan Checker - {name}")
+
     def read_file(self):
         filename = filedialog.askopenfilename(
             title="ファイルを開く",
@@ -97,6 +103,10 @@ class TreeviewApp(tk.Frame):
                     if item['Name'] in self.checkboxes:
                         self.checkboxes[item['Name']].select()
                         self.handle_checkbox_click(item)
+
+            # ここでfilenameを利用してタイトルを変更する
+            name = os.path.basename(filename)
+            self.master.title(f"Umamusume Zenkan Checker - {name}")
 
     def create_grade_tabs(self):
         for frame, races in zip(self.frames_grade, self.race_data):
@@ -147,7 +157,7 @@ class TreeviewApp(tk.Frame):
             'Handed'
         )
         for column, width in zip(
-                self.tree['columns'], [100, 70, 50, 40, 20, 40, 70, 60, 30]):
+                self.tree['columns'], [100, 70, 50, 40, 20, 40, 70, 90, 70]):
             self.tree.column(column, width=width, minwidth=50)
         for column, text in zip(
                 self.tree['columns'], [
