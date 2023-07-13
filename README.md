@@ -15,6 +15,12 @@ Umamusume Zenkan Checker.zip をダウンロード後、適当な場所に解答
 という構成になっています。uzc.exeを起動してください。<br>
 TrophyRoom.jsonはデータファイルなので上書きしないように注意してください。
 
+イメージ画像
+
+<img src="https://github.com/huroshokunin/UmaZenkanChecker/blob/%E9%9B%91%E5%A4%9A/img/gui-1.png"><br>
+
+<img src="https://github.com/huroshokunin/UmaZenkanChecker/blob/%E9%9B%91%E5%A4%9A/img/gui-2.png"><br>
+
 
 ## Change log
 
