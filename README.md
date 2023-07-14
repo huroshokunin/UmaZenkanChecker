@@ -4,7 +4,7 @@
 
 ウマ娘プリティーダービーでの収集要素であるトロフィーの収集数を管理するだけのアプリケーションです。<br>
 まだ取得できていないトロフィーのレース情報を見ることが可能となっており、レース計画に役立ちます。<br><br>
-また、保存・読み込み機能もあり、複数のウマ娘を管理することが可能です。<br>
+また、保存・読み込み機能もあり、複数のウマ娘を管理することが可能です。<br><br><br><br>
 
 ## 導入方法
 
@@ -51,12 +51,13 @@ TrophyRoom.json はデータファイルなので上書きしないように注�
 <br>
 <br>
 <br>
+<br>
 
 ## Change log
 
 もうちょっとまってね。
-
+<br><br>
 ## Support
 
-twitter : @hurochan
+twitter : @hurochan https://twitter.com/hurochan <br>
 mail : bass_craft_man@outlook.jp
