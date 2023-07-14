@@ -212,6 +212,33 @@ class TreeviewApp(tk.Frame):
         checkbox.grid(row=row, column=column, sticky=tk.NW)
         self.checkboxes[race['Name']] = checkbox
 
+    def sort_by_phase(self, descending=False):
+        """ レースのフェーズでソートするための関数 """
+        # ジュニア期, クラシック期, クラシック/シニア期, シニア期の順に並ぶようにする
+        phase_order = {
+            "ジュニア期": 1,
+            "クラシック期": 2,
+            "クラシック/シニア期": 3,
+            "シニア期": 4,
+        }
+        
+        self.checked_items.sort(
+            key=lambda item: phase_order.get(item["Phase"], 0),
+            reverse=descending,
+        )
+
+        self.update_treeview()
+
+    def sort_by_schedule(self, descending=False):
+        """ 開催時期でソートするための関数 """
+        # 月の部分だけを取り出してソートする
+        # 1, 10, 2 となってしまうので、1, 2, 10 となるようにゼロパディングする
+        self.checked_items.sort(
+            key=lambda item: item['Schedule'].split('月')[0].zfill(2),
+            reverse=descending
+        )
+        self.update_treeview()
+
     def sort_by_distance(self, descending=False):
         """ 距離でソートするための関数 """
         self.checked_items.sort(
@@ -251,10 +278,22 @@ class TreeviewApp(tk.Frame):
             self.tree.heading(column, text=text)
 
         self.tree.heading(
+            'Phase',
+            text='フェーズ',
+            command=self.sort_by_phase
+        )
+
+        self.tree.heading(
+            'Schedule',
+            text='開催時期',
+            command=self.sort_by_schedule
+        )
+        self.tree.heading(
             'Distance',
             text='距離',
             command=self.sort_by_distance
         )
+
         self.tree.grid(sticky=tk.NS)
 
     def create_scrollbar(self, frame):
