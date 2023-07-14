@@ -132,11 +132,8 @@ class TreeviewApp(tk.Frame):
             self.master.title(f"Umamusume Zenkan Checker - {name}")
 
     def read_file(self):
-        """
-        ファイルを読み込む
+        """ファイルを読み込む"""
 
-        Returns: None
-        """
         filename = filedialog.askopenfilename(
             title="ファイルを開く",
             filetypes=[("Json files", "*.json")],
@@ -147,6 +144,8 @@ class TreeviewApp(tk.Frame):
                 items = json.load(infile)
                 for checkbox in self.checkboxes.values():
                     checkbox.deselect()
+                # Clear the checked_items list
+                self.checked_items.clear()
                 for item in items:
                     if item['Name'] in self.checkboxes:
                         self.checkboxes[item['Name']].select()
@@ -221,7 +220,7 @@ class TreeviewApp(tk.Frame):
             "クラシック/シニア期": 3,
             "シニア期": 4,
         }
-        
+
         self.checked_items.sort(
             key=lambda item: phase_order.get(item["Phase"], 0),
             reverse=descending,
