@@ -24,6 +24,9 @@ TrophyRoom.jsonはデータファイルなので上書きしないように注�
 
 ## Change log
 
-v1.0 一旦リリース
+もうちょっとまってね。
 
-v1.0.1 バージョン管理が **下手すぎた** ので修正
+## Support
+
+twitter : @hurochan
+mail :  bass_craft_man@outlook.jp
