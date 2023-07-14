@@ -238,10 +238,26 @@ class TreeviewApp(tk.Frame):
         )
         self.update_treeview()
 
+    def sort_by_grade(self, descending=False):
+        """ レースグレードでソートするための関数 """
+        self.checked_items.sort(
+            key=lambda item: item['Grade'],
+            reverse=descending
+        )
+        self.update_treeview()
+
     def sort_by_distance(self, descending=False):
         """ 距離でソートするための関数 """
         self.checked_items.sort(
             key=lambda item: item['Distance'],
+            reverse=descending)
+        self.update_treeview()
+
+    def sort_by_distance_type(self, descending=False):
+        """ 距離タイプでソートするための関数 """
+        distance_order = {"短距離": 1, "マイル": 2, "中距離": 3, "長距離": 4}
+        self.checked_items.sort(
+            key=lambda item: distance_order.get(item["DistanceType"], 0),
             reverse=descending)
         self.update_treeview()
 
@@ -260,7 +276,7 @@ class TreeviewApp(tk.Frame):
             'Handed'
         )
         for column, width in zip(
-                self.tree['columns'], [100, 70, 50, 40, 20, 40, 70, 90, 70]):
+                self.tree['columns'], [100, 70, 120, 40, 20, 40, 70, 90, 70]):
             self.tree.column(column, width=width, minwidth=50)
         for column, text in zip(
                 self.tree['columns'], [
@@ -287,6 +303,12 @@ class TreeviewApp(tk.Frame):
             text='開催時期',
             command=self.sort_by_schedule
         )
+        self.tree.heading(
+            'Grade',
+            text='グレード',
+            command=self.sort_by_grade
+        )
+
         self.tree.heading(
             'Distance',
             text='距離',
