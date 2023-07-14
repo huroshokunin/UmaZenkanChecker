@@ -4,7 +4,7 @@
 
 ## 使い方
 
-Umamusume Zenkan Checker.zip をダウンロード後、適当な場所に解答してください。<br>
+Release のページから最新版の Umamusume Zenkan Checker.zip をダウンロード後、適当な場所に解答してください。<br>
 恐らくフォルダ内は
 <br>
 　 /<br>
