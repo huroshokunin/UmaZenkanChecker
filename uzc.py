@@ -3,11 +3,17 @@ import tkinter.ttk as ttk
 from tkinter import filedialog
 import json
 import os
+import sys
 
 
 class TreeviewApp(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
+        if getattr(sys, 'frozen', False):
+            self.initialdir = os.path.dirname(sys.executable)
+        else:
+            self.initialdir = './'
+
         self.master.title("Umamusume Zenkan Checker")
         self.master.geometry("1070x420")
         self.master.resizable(width=False, height=False)
@@ -23,7 +29,15 @@ class TreeviewApp(tk.Frame):
         self.create_scrollbar(self.frame_treeview)
 
     def load_race_data_from_json(self):
-        with open('./data/TrophyRoom.json', encoding='utf-8') as f:
+        """レースデータをjsonファイルから読み込む"""
+
+        if getattr(sys, 'frozen', False):  # PyInstallerでパッケージ化されている場合
+            script_dir = sys._MEIPASS  # PyInstallerが一時的に作成する作業ディレクトリ
+        else:  # 通常のPythonスクリプトとして実行されている場合
+            script_dir = os.path.dirname(os.path.realpath(__file__))
+        data_file_path = os.path.join(script_dir, 'data', 'TrophyRoom.json')
+
+        with open(data_file_path, encoding='utf-8') as f:
             data = json.load(f)
         return [data[grade] for grade in ['G1', 'G2', 'G3']]
 
@@ -66,13 +80,13 @@ class TreeviewApp(tk.Frame):
         setting.add_command(label='保存', command=self.save_file)
         setting.add_command(label='読み込み', command=self.read_file)
         setting.add_separator()
-        setting.add_command(label='終了', command=quit)
+        setting.add_command(label='終了', command=self.quit)
 
     def save_file(self):
         filename = filedialog.asksaveasfilename(
             title="名前を付けて保存",
             filetypes=[("Json files", "*.json")],
-            initialdir="./",
+            initialdir=self.initialdir,
             defaultextension=".json"
         )
         if filename:
@@ -92,7 +106,7 @@ class TreeviewApp(tk.Frame):
         filename = filedialog.askopenfilename(
             title="ファイルを開く",
             filetypes=[("Json files", "*.json")],
-            initialdir="./"
+            initialdir=self.initialdir
         )
         if filename:
             with open(filename, 'r', encoding='utf-8') as infile:
