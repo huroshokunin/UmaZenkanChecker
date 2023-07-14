@@ -1,12 +1,24 @@
-# UmaZenkanChecker
+# UmaZenkanChecker 
+
+<img width=128px, src="https://github.com/huroshokunin/UmaZenkanChecker/blob/%E9%9B%91%E5%A4%9A/img/urara-s_16_0.svg">
 
 ウマ娘プリティーダービーでの収集要素であるトロフィーの収集数を管理するだけのアプリケーションです。<br>
 まだ取得できていないトロフィーのレース情報を見ることが可能となっており、レース計画に役立ちます。<br><br>
-また、保存・読み込み機能もあり、複数のウマ娘を管理することが可能です。<br>
+また、保存・読み込み機能もあり、複数のウマ娘を管理することが可能です。<br><br><br><br>
 
 ## 導入方法
 
-Release のページから最新版の UmamusumeZenkanChecker.zip をダウンロード後、適当な場所に解答してください。<br>
+Release のページから最新版の UmamusumeZenkanChecker.zip をダウンロード後、適当な場所に解凍してください。<br>
+
+### v1.1.0以降
+
+
+- 圧縮ファイルを解答するとuzc.exeがあるので、それを起動してください。<br>
+
+
+<br><br><br>
+### v1.0.1以前のバージョン
+
 恐らくフォルダ内は
 <br>
 　 /<br>
@@ -16,7 +28,7 @@ Release のページから最新版の UmamusumeZenkanChecker.zip をダウン�
 
 という構成になっています。uzc.exe を起動してください。<br>
 TrophyRoom.json はデータファイルなので上書きしないように注意してください。<br>
-また、data フォルダが uzc.exe と同じディレクトリに置かれていないと動作しません。
+また、data フォルダが uzc.exe と同じディレクトリに置かれていないと動作しません。<br><br><br><br>
 
 ## 使い方
 
@@ -39,12 +51,13 @@ TrophyRoom.json はデータファイルなので上書きしないように注�
 <br>
 <br>
 <br>
+<br>
 
 ## Change log
 
 もうちょっとまってね。
-
+<br><br>
 ## Support
 
-twitter : @hurochan
+twitter : @hurochan https://twitter.com/hurochan <br>
 mail : bass_craft_man@outlook.jp
