@@ -2,7 +2,7 @@
 
 ウマ娘プリティーダービーでの収集要素であるトロフィーの収集数を管理するだけのアプリケーションです。
 
-## 使い方
+## 導入方法
 
 Release のページから最新版の Umamusume Zenkan Checker.zip をダウンロード後、適当な場所に解答してください。<br>
 恐らくフォルダ内は
@@ -12,18 +12,37 @@ Release のページから最新版の Umamusume Zenkan Checker.zip をダウン
 　 └ data/<br>
 　　　 └ TrophyRoom.json<br>
 
-という構成になっています。uzc.exeを起動してください。<br>
-TrophyRoom.jsonはデータファイルなので上書きしないように注意してください。
+という構成になっています。uzc.exe を起動してください。<br>
+TrophyRoom.json はデータファイルなので上書きしないように注意してください。<br>
+また、data フォルダが uzc.exe と同じディレクトリに置かれていないと動作しません。
 
-イメージ画像
+## 使い方
+
+起動すると以下のような画面が現れます。
 
 <img src="https://github.com/huroshokunin/UmaZenkanChecker/blob/%E9%9B%91%E5%A4%9A/img/gui-1.png"><br>
 
+レースは 3 列 5 行に並んでおり、ゲーム内のトロフィールームの順番で並んでいるため<br>
+レース名を見比べなくても済むようになっています。<br>
+タブを選択して該当するレースにチェックを入れてください。<br>
+<br>
+<br>
+<br>
+以下はハルウララの残りトロフィーのイメージ画像です。
+
 <img src="https://github.com/huroshokunin/UmaZenkanChecker/blob/%E9%9B%91%E5%A4%9A/img/gui-2.png"><br>
 
+メニューから現在のトロフィーの空き情報を保存できます。<br>
+また、読み込むことも出来るので複数のウマ娘を管理することが可能になっています。<br>
+<br>
+<br>
+<br>
 
 ## Change log
 
-v1.0 一旦リリース
+もうちょっとまってね。
 
-v1.0.1 バージョン管理が **下手すぎた** ので修正
+## Support
+
+twitter : @hurochan
+mail : bass_craft_man@outlook.jp
