@@ -142,9 +142,10 @@ class TreeviewApp(tk.Frame):
         if filename:
             with open(filename, 'r', encoding='utf-8') as infile:
                 items = json.load(infile)
+                # チェックボックスのチェックを全て外す
                 for checkbox in self.checkboxes.values():
                     checkbox.deselect()
-                # Clear the checked_items list
+                # リスト内の要素を全て削除する
                 self.checked_items.clear()
                 for item in items:
                     if item['Name'] in self.checkboxes:
