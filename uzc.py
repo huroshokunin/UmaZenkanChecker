@@ -23,15 +23,15 @@ class TreeviewApp(tk.Frame):
         self.checked_items = []
         self.checkboxes = {}
 
-        self.frames_grade, self.frame_treeview = self.create_frames()
+        self.frames_grade, self.frame_treeview, self.frame_sort = self.create_frames()
         self.create_menubar()
         self.create_grade_tabs()
         self.create_treeview(self.frame_treeview)
+        self.create_sort_button(self.frame_sort)
         self.create_scrollbar(self.frame_treeview)
 
     def load_race_data_from_json(self):
         """ レースデータをjsonファイルから読み込む """
-
         if getattr(sys, 'frozen', False):  # PyInstallerでパッケージ化されている場合
             script_dir = sys._MEIPASS  # PyInstallerが一時的に作成する作業ディレクトリ
         else:  # 通常のPythonスクリプトとして実行されている場合
@@ -46,10 +46,11 @@ class TreeviewApp(tk.Frame):
         """ 全体のフレームを作成するための関数呼び出し """
         frame_grade = self.create_grade_frames()
         frame_treeview = self.create_treeview_frame()
-        return frame_grade, frame_treeview
+        frame_sort = self.create_sort_frame()
+        return frame_grade, frame_treeview, frame_sort
 
     def create_grade_frames(self):
-        """ フレームを作成するための関数呼び出しとリストに格納 """
+        """ レースフレームを作成するための関数呼び出しとリストに格納 """
         frame_grade = tk.Frame(self.master)
         frame_grade.grid(row=0, columnspan=3, sticky=tk.NSEW)
         frames = [self.create_grade_frame(frame_grade, i) for i in range(3)]
@@ -73,8 +74,14 @@ class TreeviewApp(tk.Frame):
     def create_treeview_frame(self):
         """ ツリービューのフレームを作成する """
         frame_treeview = tk.Frame(self.master)
-        frame_treeview.grid(row=2, column=0, columnspan=3, sticky=tk.NS)
+        frame_treeview.grid(row=2, column=0, columnspan=2, sticky=tk.NS)
         return frame_treeview
+
+    def create_sort_frame(self):
+        """ ソートボタンのフレームを作成する """
+        frame_sort = tk.Frame(self.master)
+        frame_sort.grid(row=2, column=2, sticky=tk.NS)
+        return frame_sort
 
     def create_menubar(self):
         """ メニューバーを作成する """
@@ -312,6 +319,59 @@ class TreeviewApp(tk.Frame):
             frame, orient='vertical', command=self.tree.yview)
         scrollbar.grid(row=0, column=1, sticky=tk.NS)
         self.tree.configure(yscrollcommand=scrollbar.set)
+
+    def create_sort_button(self, frame):
+        """ ソートボタンを作成する """
+        # 別ウィンドウを作成して、複製したtreeを表示する
+        button_sort = ttk.Button(
+            frame,
+            text='別ウィンドウでソート',
+            command=self.create_sort_window
+        )
+        button_sort.grid(row=0, column=0, sticky=tk.NS)
+
+    def create_sort_window(self):
+        """ 別ウィンドウを作成する """
+        # 別ウィンドウを作成する
+        sort_window = tk.Toplevel(self)
+        sort_window.title('別ウィンドウでソート')
+        sort_window.geometry('600x300')
+
+        # メインウィンドウのtreeviewをそのままコピーして表示させるようにさせる
+        tree_copy = ttk.Treeview(sort_window, show='headings')
+        tree_copy['columns'] = self.tree['columns']
+        for column in self.tree['columns']:
+            tree_copy.column(
+                column,
+                width=self.tree.column(column)['width'],
+                minwidth=50)
+            tree_copy.heading(
+                column, text=self.tree.heading(column)['text'])
+
+        tree_copy.grid(sticky=tk.NS)
+
+        for item in self.checked_items:
+            tree_copy.insert(
+                '',
+                'end',
+                values=(
+                    item['Phase'],
+                    item['Schedule'],
+                    item['Name'],
+                    item['Grade'],
+                    item['Place'],
+                    item['CourseType'],
+                    item['Distance'],
+                    item['DistanceType'],
+                    item['Handed']
+                )
+            )
+
+        # スクロールバーの追加
+        scrollbar = ttk.Scrollbar(
+            sort_window, orient='vertical', command=tree_copy.yview)
+        scrollbar.grid(row=0, column=1, sticky=tk.NS)
+        tree_copy.configure(yscrollcommand=scrollbar.set)
 
     def handle_checkbox_click(self, race):
         """ チェックボックスがクリックされたときの処理 """
