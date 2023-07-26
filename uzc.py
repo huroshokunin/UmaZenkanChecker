@@ -1,6 +1,8 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import filedialog
+import pandas as pd
+import csv
 import json
 import os
 import sys
@@ -27,7 +29,6 @@ class TreeviewApp(tk.Frame):
         self.create_menubar()
         self.create_grade_tabs()
         self.create_treeview(self.frame_treeview)
-        self.create_sort_button(self.frame_sort)
         self.create_scrollbar(self.frame_treeview)
 
     def load_race_data_from_json(self):
@@ -93,6 +94,18 @@ class TreeviewApp(tk.Frame):
 
         setting.add_command(label='保存', command=self.save_file)
         setting.add_command(label='読み込み', command=self.read_file)
+
+        export = tk.Menu(setting, tearoff=False)
+        # チェックされた要素をエクスポートする
+        setting.add_cascade(label='エクスポート', menu=export)
+        export.add_command(
+            label='CSV', command=lambda: self.export_file("csv"))
+        export.add_command(
+            label='TXT', command=lambda: self.export_file("txt"))
+        export.add_command(
+            label='HTML',
+            command=lambda: self.export_file("html"))
+
         setting.add_separator()
         setting.add_command(label='終了', command=self.quit)
 
@@ -119,7 +132,6 @@ class TreeviewApp(tk.Frame):
 
     def read_file(self):
         """ ファイルを読み込む """
-
         filename = filedialog.askopenfilename(
             title="ファイルを開く",
             filetypes=[("Json files", "*.json")],
@@ -141,6 +153,40 @@ class TreeviewApp(tk.Frame):
             # ここでfilenameを利用してタイトルを変更する
             name = os.path.basename(filename)
             self.master.title(f"Umamusume Zenkan Checker - {name}")
+
+    def export_file(self, file_type: str):
+        """ ファイルをエクスポートする """
+
+        filename = filedialog.asksaveasfilename(
+            title="名前を付けて保存",
+            initialdir=self.initialdir,
+            # Using get() to handle unknown file types
+            defaultextension=f".{file_type}",
+            filetypes=[(f"{file_type.upper()} files", f"*.{file_type}")]
+        )
+
+        if not filename:
+            # The user did not select a file
+            return
+
+        export_list = [item.values() for item in self.checked_items]
+
+        if file_type == "csv":
+            with open(filename, 'w', newline='', encoding='utf-8-sig') as f:
+                writer = csv.writer(f)
+                writer.writerows(export_list)
+        elif file_type == "txt":
+            with open(filename, 'w', encoding='utf-8') as f:
+                for line in export_list:
+                    f.write('\t'.join(line) + '\n')
+        elif file_type == "html":
+            df = pd.DataFrame(self.checked_items)
+            df.to_html(filename)
+
+        tk.messagebox.showinfo(
+            title="エクスポート完了",
+            message=f"{filename} にエクスポートしました"
+        )
 
     def create_grade_tabs(self):
         """ レースグレードごとのタブを作成する """
@@ -319,59 +365,6 @@ class TreeviewApp(tk.Frame):
             frame, orient='vertical', command=self.tree.yview)
         scrollbar.grid(row=0, column=1, sticky=tk.NS)
         self.tree.configure(yscrollcommand=scrollbar.set)
-
-    def create_sort_button(self, frame):
-        """ ソートボタンを作成する """
-        # 別ウィンドウを作成して、複製したtreeを表示する
-        button_sort = ttk.Button(
-            frame,
-            text='別ウィンドウでソート',
-            command=self.create_sort_window
-        )
-        button_sort.grid(row=0, column=0, sticky=tk.NS)
-
-    def create_sort_window(self):
-        """ 別ウィンドウを作成する """
-        # 別ウィンドウを作成する
-        sort_window = tk.Toplevel(self)
-        sort_window.title('別ウィンドウでソート')
-        sort_window.geometry('600x300')
-
-        # メインウィンドウのtreeviewをそのままコピーして表示させるようにさせる
-        tree_copy = ttk.Treeview(sort_window, show='headings')
-        tree_copy['columns'] = self.tree['columns']
-        for column in self.tree['columns']:
-            tree_copy.column(
-                column,
-                width=self.tree.column(column)['width'],
-                minwidth=50)
-            tree_copy.heading(
-                column, text=self.tree.heading(column)['text'])
-
-        tree_copy.grid(sticky=tk.NS)
-
-        for item in self.checked_items:
-            tree_copy.insert(
-                '',
-                'end',
-                values=(
-                    item['Phase'],
-                    item['Schedule'],
-                    item['Name'],
-                    item['Grade'],
-                    item['Place'],
-                    item['CourseType'],
-                    item['Distance'],
-                    item['DistanceType'],
-                    item['Handed']
-                )
-            )
-
-        # スクロールバーの追加
-        scrollbar = ttk.Scrollbar(
-            sort_window, orient='vertical', command=tree_copy.yview)
-        scrollbar.grid(row=0, column=1, sticky=tk.NS)
-        tree_copy.configure(yscrollcommand=scrollbar.set)
 
     def handle_checkbox_click(self, race):
         """ チェックボックスがクリックされたときの処理 """
