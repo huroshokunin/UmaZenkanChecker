@@ -1,6 +1,8 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import filedialog
+import pandas as pd
+import csv
 import json
 import os
 import sys
@@ -23,7 +25,7 @@ class TreeviewApp(tk.Frame):
         self.checked_items = []
         self.checkboxes = {}
 
-        self.frames_grade, self.frame_treeview = self.create_frames()
+        self.frames_grade, self.frame_treeview, self.frame_sort = self.create_frames()
         self.create_menubar()
         self.create_grade_tabs()
         self.create_treeview(self.frame_treeview)
@@ -31,7 +33,6 @@ class TreeviewApp(tk.Frame):
 
     def load_race_data_from_json(self):
         """ レースデータをjsonファイルから読み込む """
-
         if getattr(sys, 'frozen', False):  # PyInstallerでパッケージ化されている場合
             script_dir = sys._MEIPASS  # PyInstallerが一時的に作成する作業ディレクトリ
         else:  # 通常のPythonスクリプトとして実行されている場合
@@ -46,10 +47,11 @@ class TreeviewApp(tk.Frame):
         """ 全体のフレームを作成するための関数呼び出し """
         frame_grade = self.create_grade_frames()
         frame_treeview = self.create_treeview_frame()
-        return frame_grade, frame_treeview
+        frame_sort = self.create_sort_frame()
+        return frame_grade, frame_treeview, frame_sort
 
     def create_grade_frames(self):
-        """ フレームを作成するための関数呼び出しとリストに格納 """
+        """ レースフレームを作成するための関数呼び出しとリストに格納 """
         frame_grade = tk.Frame(self.master)
         frame_grade.grid(row=0, columnspan=3, sticky=tk.NSEW)
         frames = [self.create_grade_frame(frame_grade, i) for i in range(3)]
@@ -73,8 +75,14 @@ class TreeviewApp(tk.Frame):
     def create_treeview_frame(self):
         """ ツリービューのフレームを作成する """
         frame_treeview = tk.Frame(self.master)
-        frame_treeview.grid(row=2, column=0, columnspan=3, sticky=tk.NS)
+        frame_treeview.grid(row=2, column=0, columnspan=2, sticky=tk.NS)
         return frame_treeview
+
+    def create_sort_frame(self):
+        """ ソートボタンのフレームを作成する """
+        frame_sort = tk.Frame(self.master)
+        frame_sort.grid(row=2, column=2, sticky=tk.NS)
+        return frame_sort
 
     def create_menubar(self):
         """ メニューバーを作成する """
@@ -86,6 +94,18 @@ class TreeviewApp(tk.Frame):
 
         setting.add_command(label='保存', command=self.save_file)
         setting.add_command(label='読み込み', command=self.read_file)
+
+        export = tk.Menu(setting, tearoff=False)
+        # チェックされた要素をエクスポートする
+        setting.add_cascade(label='エクスポート', menu=export)
+        export.add_command(
+            label='CSV', command=lambda: self.export_file("csv"))
+        export.add_command(
+            label='TXT', command=lambda: self.export_file("txt"))
+        export.add_command(
+            label='HTML',
+            command=lambda: self.export_file("html"))
+
         setting.add_separator()
         setting.add_command(label='終了', command=self.quit)
 
@@ -112,7 +132,6 @@ class TreeviewApp(tk.Frame):
 
     def read_file(self):
         """ ファイルを読み込む """
-
         filename = filedialog.askopenfilename(
             title="ファイルを開く",
             filetypes=[("Json files", "*.json")],
@@ -134,6 +153,40 @@ class TreeviewApp(tk.Frame):
             # ここでfilenameを利用してタイトルを変更する
             name = os.path.basename(filename)
             self.master.title(f"Umamusume Zenkan Checker - {name}")
+
+    def export_file(self, file_type: str):
+        """ ファイルをエクスポートする """
+
+        filename = filedialog.asksaveasfilename(
+            title="名前を付けて保存",
+            initialdir=self.initialdir,
+            # Using get() to handle unknown file types
+            defaultextension=f".{file_type}",
+            filetypes=[(f"{file_type.upper()} files", f"*.{file_type}")]
+        )
+
+        if not filename:
+            # The user did not select a file
+            return
+
+        export_list = [item.values() for item in self.checked_items]
+
+        if file_type == "csv":
+            with open(filename, 'w', newline='', encoding='utf-8-sig') as f:
+                writer = csv.writer(f)
+                writer.writerows(export_list)
+        elif file_type == "txt":
+            with open(filename, 'w', encoding='utf-8') as f:
+                for line in export_list:
+                    f.write('\t'.join(line) + '\n')
+        elif file_type == "html":
+            df = pd.DataFrame(self.checked_items)
+            df.to_html(filename)
+
+        tk.messagebox.showinfo(
+            title="エクスポート完了",
+            message=f"{filename} にエクスポートしました"
+        )
 
     def create_grade_tabs(self):
         """ レースグレードごとのタブを作成する """
