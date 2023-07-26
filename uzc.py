@@ -2,6 +2,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import filedialog
 import pandas as pd
+import re
 import csv
 import json
 import os
@@ -91,6 +92,7 @@ class TreeviewApp(tk.Frame):
         self.master.config(menu=menubar)
         setting = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label='ファイル', menu=setting)
+        menubar.add_cascade(label='検索', menu=self.create_search_menu())
 
         setting.add_command(label='保存', command=self.save_file)
         setting.add_command(label='読み込み', command=self.read_file)
@@ -187,6 +189,50 @@ class TreeviewApp(tk.Frame):
             title="エクスポート完了",
             message=f"{filename} にエクスポートしました"
         )
+
+    def create_search_menu(self):
+        search_menu = tk.Menu(self.master, tearoff=0)
+        search_menu.add_command(
+            label='検索...', command=self.open_search_box)
+        return search_menu
+
+    def open_search_box(self):
+        search_box = tk.Toplevel(self.master)
+        search_box.attributes('-topmost', True)
+        search_box.title('検索')
+        tk.Label(search_box, text='検索文字列:').pack(side=tk.LEFT)
+        self.search_entry = tk.Entry(search_box)
+        self.search_entry.pack(side=tk.LEFT)
+        self.search_entry.bind('<KeyRelease>', lambda event: self.search_items())
+        tk.Button(search_box, text='検索', command=self.search_items).pack(side=tk.LEFT)
+
+    def search_items(self):
+        search_str = self.search_entry.get()
+
+        # If search string is empty, remove all highlights and return
+        if not search_str:
+            for child in self.tree.get_children():
+                self.tree.item(child, tags='')
+
+            for checkbox in self.checkboxes.values():
+                checkbox.configure(bg='SystemButtonFace')
+
+            return
+
+        for child in self.tree.get_children():
+            item = self.tree.item(child)
+            if search_str in item['values']:
+                self.tree.item(child, tags='matched')
+            else:
+                self.tree.item(child, tags='')
+        self.tree.tag_configure('matched', background='yellow')
+
+        for checkbox in self.checkboxes.values():
+            if search_str in checkbox.cget('text'):
+                checkbox.configure(bg='yellow')
+            else:
+                checkbox.configure(bg='SystemButtonFace')
+
 
     def create_grade_tabs(self):
         """ レースグレードごとのタブを作成する """
