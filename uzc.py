@@ -2,7 +2,6 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import filedialog
 import pandas as pd
-import re
 import csv
 import json
 import os
