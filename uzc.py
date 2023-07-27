@@ -1,11 +1,11 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import filedialog
-import pandas as pd
 import csv
 import json
 import os
 import sys
+import pandas as pd
 
 
 class TreeviewApp(tk.Frame):
@@ -202,8 +202,14 @@ class TreeviewApp(tk.Frame):
         tk.Label(search_box, text='検索文字列:').pack(side=tk.LEFT)
         self.search_entry = tk.Entry(search_box)
         self.search_entry.pack(side=tk.LEFT)
-        self.search_entry.bind('<KeyRelease>', lambda event: self.search_items())
-        tk.Button(search_box, text='検索', command=self.search_items).pack(side=tk.LEFT)
+        self.search_entry.bind(
+            '<KeyRelease>',
+            lambda event: self.search_items())
+        tk.Button(
+            search_box,
+            text='検索',
+            command=self.search_items).pack(
+            side=tk.LEFT)
 
     def search_items(self):
         search_str = self.search_entry.get()
@@ -212,10 +218,8 @@ class TreeviewApp(tk.Frame):
         if not search_str:
             for child in self.tree.get_children():
                 self.tree.item(child, tags='')
-
             for checkbox in self.checkboxes.values():
                 checkbox.configure(bg='SystemButtonFace')
-
             return
 
         for child in self.tree.get_children():
@@ -231,7 +235,6 @@ class TreeviewApp(tk.Frame):
                 checkbox.configure(bg='yellow')
             else:
                 checkbox.configure(bg='SystemButtonFace')
-
 
     def create_grade_tabs(self):
         """ レースグレードごとのタブを作成する """
