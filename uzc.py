@@ -205,14 +205,13 @@ class TreeviewApp(tk.Frame):
         self.search_entry.bind(
             '<KeyRelease>',
             lambda event: self.search_items())
-        tk.Button(
-            search_box,
-            text='検索',
-            command=self.search_items).pack(
-            side=tk.LEFT)
+        # Add a label to show the number of matches
+        self.result_label = tk.Label(search_box, text="0件")
+        self.result_label.pack(side=tk.BOTTOM)  # Adjust the position as needed
 
     def search_items(self):
         search_str = self.search_entry.get()
+        match_count = 0  # Add a counter for the matches
 
         # If search string is empty, remove all highlights and return
         if not search_str:
@@ -220,12 +219,14 @@ class TreeviewApp(tk.Frame):
                 self.tree.item(child, tags='')
             for checkbox in self.checkboxes.values():
                 checkbox.configure(bg='SystemButtonFace')
+            self.result_label.config(text="0件")  # Clear the result label
             return
 
         for child in self.tree.get_children():
             item = self.tree.item(child)
             if search_str in item['values']:
                 self.tree.item(child, tags='matched')
+                match_count += 1  # Increment the counter for each match in the tree
             else:
                 self.tree.item(child, tags='')
         self.tree.tag_configure('matched', background='yellow')
@@ -233,8 +234,12 @@ class TreeviewApp(tk.Frame):
         for checkbox in self.checkboxes.values():
             if search_str in checkbox.cget('text'):
                 checkbox.configure(bg='yellow')
+                match_count += 1  # Increment the counter for each match in the checkboxes
             else:
                 checkbox.configure(bg='SystemButtonFace')
+
+        # Update the result label with the number of matches
+        self.result_label.config(text=f"{match_count}件")
 
     def create_grade_tabs(self):
         """ レースグレードごとのタブを作成する """
