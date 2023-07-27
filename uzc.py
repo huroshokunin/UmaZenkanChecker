@@ -1,14 +1,16 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import filedialog
+import csv
 import json
 import os
 import sys
+import pandas as pd
 
 
 class TreeviewApp(tk.Frame):
     def __init__(self, master=None):
-        """初期化"""
+        """ 初期化 """
         super().__init__(master)
         if getattr(sys, 'frozen', False):
             self.initialdir = os.path.dirname(sys.executable)
@@ -23,15 +25,14 @@ class TreeviewApp(tk.Frame):
         self.checked_items = []
         self.checkboxes = {}
 
-        self.frames_grade, self.frame_treeview = self.create_frames()
+        self.frames_grade, self.frame_treeview, self.frame_sort = self.create_frames()
         self.create_menubar()
         self.create_grade_tabs()
         self.create_treeview(self.frame_treeview)
         self.create_scrollbar(self.frame_treeview)
 
     def load_race_data_from_json(self):
-        """レースデータをjsonファイルから読み込む"""
-
+        """ レースデータをjsonファイルから読み込む """
         if getattr(sys, 'frozen', False):  # PyInstallerでパッケージ化されている場合
             script_dir = sys._MEIPASS  # PyInstallerが一時的に作成する作業ディレクトリ
         else:  # 通常のPythonスクリプトとして実行されている場合
@@ -43,28 +44,21 @@ class TreeviewApp(tk.Frame):
         return [data[grade] for grade in ['G1', 'G2', 'G3']]
 
     def create_frames(self):
-        """全体のフレームを作成するための関数呼び出し"""
+        """ 全体のフレームを作成するための関数呼び出し """
         frame_grade = self.create_grade_frames()
         frame_treeview = self.create_treeview_frame()
-        return frame_grade, frame_treeview
+        frame_sort = self.create_sort_frame()
+        return frame_grade, frame_treeview, frame_sort
 
     def create_grade_frames(self):
-        """
-        フレームを作成するための関数呼び出しとリストに格納
-
-        Returns: list of tk.Frame
-        """
+        """ レースフレームを作成するための関数呼び出しとリストに格納 """
         frame_grade = tk.Frame(self.master)
         frame_grade.grid(row=0, columnspan=3, sticky=tk.NSEW)
         frames = [self.create_grade_frame(frame_grade, i) for i in range(3)]
         return frames
 
     def create_grade_frame(self, parent_frame, i):
-        """
-        レースグレードのフレームを作成する
-
-        return: tk.Frame
-        """
+        """ レースグレードのフレームを作成する """
         frame = tk.Frame(parent_frame)
         frame.grid(row=1, column=i, padx=5, sticky=tk.NW)
         tk.Label(
@@ -79,39 +73,45 @@ class TreeviewApp(tk.Frame):
         return frame
 
     def create_treeview_frame(self):
-        """
-        ツリービューのフレームを作成する
-
-        Returns: tk.Frame
-        """
+        """ ツリービューのフレームを作成する """
         frame_treeview = tk.Frame(self.master)
-        frame_treeview.grid(row=2, column=0, columnspan=3, sticky=tk.NS)
+        frame_treeview.grid(row=2, column=0, columnspan=2, sticky=tk.NS)
         return frame_treeview
 
-    def create_menubar(self):
-        """
-        メニューバーを作成する
+    def create_sort_frame(self):
+        """ ソートボタンのフレームを作成する """
+        frame_sort = tk.Frame(self.master)
+        frame_sort.grid(row=2, column=2, sticky=tk.NS)
+        return frame_sort
 
-        Returns: None
-        """
+    def create_menubar(self):
+        """ メニューバーを作成する """
 
         menubar = tk.Menu(self.master)
         self.master.config(menu=menubar)
         setting = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label='ファイル', menu=setting)
+        menubar.add_cascade(label='検索', menu=self.create_search_menu())
 
         setting.add_command(label='保存', command=self.save_file)
         setting.add_command(label='読み込み', command=self.read_file)
+
+        export = tk.Menu(setting, tearoff=False)
+        # チェックされた要素をエクスポートする
+        setting.add_cascade(label='エクスポート', menu=export)
+        export.add_command(
+            label='CSV', command=lambda: self.export_file("csv"))
+        export.add_command(
+            label='TXT', command=lambda: self.export_file("txt"))
+        export.add_command(
+            label='HTML',
+            command=lambda: self.export_file("html"))
+
         setting.add_separator()
         setting.add_command(label='終了', command=self.quit)
 
     def save_file(self):
-        """
-        ファイルを保存する
-
-        Returns: None
-        """
-
+        """ ファイルを保存する """
         filename = filedialog.asksaveasfilename(
             title="名前を付けて保存",
             filetypes=[("Json files", "*.json")],
@@ -132,8 +132,7 @@ class TreeviewApp(tk.Frame):
             self.master.title(f"Umamusume Zenkan Checker - {name}")
 
     def read_file(self):
-        """ファイルを読み込む"""
-
+        """ ファイルを読み込む """
         filename = filedialog.askopenfilename(
             title="ファイルを開く",
             filetypes=[("Json files", "*.json")],
@@ -156,21 +155,99 @@ class TreeviewApp(tk.Frame):
             name = os.path.basename(filename)
             self.master.title(f"Umamusume Zenkan Checker - {name}")
 
+    def export_file(self, file_type: str):
+        """ ファイルをエクスポートする """
+
+        filename = filedialog.asksaveasfilename(
+            title="名前を付けて保存",
+            initialdir=self.initialdir,
+            # Using get() to handle unknown file types
+            defaultextension=f".{file_type}",
+            filetypes=[(f"{file_type.upper()} files", f"*.{file_type}")]
+        )
+
+        if not filename:
+            # The user did not select a file
+            return
+
+        export_list = [item.values() for item in self.checked_items]
+
+        if file_type == "csv":
+            with open(filename, 'w', newline='', encoding='utf-8-sig') as f:
+                writer = csv.writer(f)
+                writer.writerows(export_list)
+        elif file_type == "txt":
+            with open(filename, 'w', encoding='utf-8') as f:
+                for line in export_list:
+                    f.write('\t'.join(line) + '\n')
+        elif file_type == "html":
+            df = pd.DataFrame(self.checked_items)
+            df.to_html(filename)
+
+        tk.messagebox.showinfo(
+            title="エクスポート完了",
+            message=f"{filename} にエクスポートしました"
+        )
+
+    def create_search_menu(self):
+        search_menu = tk.Menu(self.master, tearoff=0)
+        search_menu.add_command(
+            label='検索...', command=self.open_search_box)
+        return search_menu
+
+    def open_search_box(self):
+        search_box = tk.Toplevel(self.master)
+        search_box.attributes('-topmost', True)
+        search_box.title('検索')
+        tk.Label(search_box, text='検索文字列:').pack(side=tk.LEFT)
+        self.search_entry = tk.Entry(search_box)
+        self.search_entry.pack(side=tk.LEFT)
+        self.search_entry.bind(
+            '<KeyRelease>',
+            lambda event: self.search_items())
+        # Add a label to show the number of matches
+        self.result_label = tk.Label(search_box, text="0件")
+        self.result_label.pack(side=tk.BOTTOM)  # Adjust the position as needed
+
+    def search_items(self):
+        search_str = self.search_entry.get()
+        match_count = 0  # Add a counter for the matches
+
+        # If search string is empty, remove all highlights and return
+        if not search_str:
+            for child in self.tree.get_children():
+                self.tree.item(child, tags='')
+            for checkbox in self.checkboxes.values():
+                checkbox.configure(bg='SystemButtonFace')
+            self.result_label.config(text="0件")  # Clear the result label
+            return
+
+        for child in self.tree.get_children():
+            item = self.tree.item(child)
+            if search_str in item['values']:
+                self.tree.item(child, tags='matched')
+                match_count += 1  # Increment the counter for each match in the tree
+            else:
+                self.tree.item(child, tags='')
+        self.tree.tag_configure('matched', background='yellow')
+
+        for checkbox in self.checkboxes.values():
+            if search_str in checkbox.cget('text'):
+                checkbox.configure(bg='yellow')
+                match_count += 1  # Increment the counter for each match in the checkboxes
+            else:
+                checkbox.configure(bg='SystemButtonFace')
+
+        # Update the result label with the number of matches
+        self.result_label.config(text=f"{match_count}件")
+
     def create_grade_tabs(self):
-        """
-        レースグレードごとのタブを作成する
-        """
+        """ レースグレードごとのタブを作成する """
         for frame, races in zip(self.frames_grade, self.race_data):
             self.create_tabs_with_checkboxes(frame, races)
 
     def create_tabs_with_checkboxes(self, frame, races):
-        """
-        チェックボックスを含むタブを作成する
-
-        Args:
-            frame (tk.Frame): _description_
-            races (list): _description_
-        """
+        """チェックボックスを含むタブを作成する"""
         races_per_tab = 15
         race_sublists = [races[i:i + races_per_tab]
                          for i in range(0, len(races), races_per_tab)]
@@ -180,14 +257,7 @@ class TreeviewApp(tk.Frame):
         notebook.grid()
 
     def create_tab_with_checkboxes(self, notebook, races, tab_num):
-        """
-        チェックボックスを含むタブを作成する
-
-        Args:
-            notebook (ttk.Notebook): _description_
-            races (list): _description_
-            tab_num (int): _description_
-        """
+        """ チェックボックスを含むタブを作成する """
         tab = tk.Frame(notebook)
         notebook.add(tab, text=f'Page{tab_num}')
         for i, race in enumerate(races):
@@ -195,15 +265,7 @@ class TreeviewApp(tk.Frame):
             self.create_checkbox(tab, race, row, column)
 
     def create_checkbox(self, parent, race, row, column):
-        """
-        チェックボックスを作成する
-
-        Args:
-            parent (tk.Frame): _description_
-            race (dict): _description_
-            row (int): _description_
-            column (int): _description_
-        """
+        """ チェックボックスを作成する """
         checkbox = tk.Checkbutton(
             parent,
             text=race['Name'],
@@ -247,6 +309,14 @@ class TreeviewApp(tk.Frame):
         )
         self.update_treeview()
 
+    def sort_by_course_type(self, descending=False):
+        """ コースタイプでソートするための関数 """
+        course_order = {"芝": 1, "ダート": 2}
+        self.checked_items.sort(
+            key=lambda item: course_order.get(item["CourseType"], 0),
+            reverse=descending)
+        self.update_treeview()
+
     def sort_by_distance(self, descending=False):
         """ 距離でソートするための関数 """
         self.checked_items.sort(
@@ -259,6 +329,14 @@ class TreeviewApp(tk.Frame):
         distance_order = {"短距離": 1, "マイル": 2, "中距離": 3, "長距離": 4}
         self.checked_items.sort(
             key=lambda item: distance_order.get(item["DistanceType"], 0),
+            reverse=descending)
+        self.update_treeview()
+
+    def sort_by_handed(self, descending=False):
+        """ 左右回りでソートするための関数 """
+        handed_order = {"左回り": 1, "右回り": 2}
+        self.checked_items.sort(
+            key=lambda item: handed_order.get(item["Handed"], 0),
             reverse=descending)
         self.update_treeview()
 
@@ -279,19 +357,6 @@ class TreeviewApp(tk.Frame):
         for column, width in zip(
                 self.tree['columns'], [100, 70, 120, 40, 20, 40, 70, 90, 70]):
             self.tree.column(column, width=width, minwidth=50)
-        for column, text in zip(
-                self.tree['columns'], [
-                    'フェーズ',
-                    '開催時期',
-                    'レース名',
-                    'グレード',
-                    '開催地',
-                    'コース',
-                    '距離',
-                    '距離区分',
-                    '回り'
-                ]):
-            self.tree.heading(column, text=text)
 
         self.tree.heading(
             'Phase',
@@ -304,6 +369,12 @@ class TreeviewApp(tk.Frame):
             text='開催時期',
             command=self.sort_by_schedule
         )
+
+        self.tree.heading(
+            'Name',
+            text='レース名',
+        )
+
         self.tree.heading(
             'Grade',
             text='グレード',
@@ -311,9 +382,32 @@ class TreeviewApp(tk.Frame):
         )
 
         self.tree.heading(
+            'Place',
+            text='開催地'
+        )
+
+        self.tree.heading(
+            'CourseType',
+            text='コース区分',
+            command=self.sort_by_course_type
+        )
+
+        self.tree.heading(
             'Distance',
             text='距離',
             command=self.sort_by_distance
+        )
+
+        self.tree.heading(
+            'DistanceType',
+            text='距離区分',
+            command=self.sort_by_distance_type
+        )
+
+        self.tree.heading(
+            'Handed',
+            text='回り',
+            command=self.sort_by_handed
         )
 
         self.tree.grid(sticky=tk.NS)
